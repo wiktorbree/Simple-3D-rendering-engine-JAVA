@@ -79,6 +79,20 @@ public class DemoViewer {
                     v3.x += getWidth() / 2.0;
                     v3.y += getHeight() / 2.0;
 
+                    Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+                    Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
+                    Vertex norm = new Vertex(
+                            ab.y * ac.z - ab.z * ac.y,
+                            ab.z * ac.x - ab.x * ac.z,
+                            ab.x * ac.y - ab.y * ac.x
+                    );
+                    double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+                    norm.x /= normalLength;
+                    norm.y /= normalLength;
+                    norm.z /= normalLength;
+
+                    double angleCos = Math.abs(norm.z);
+
                     // compute rectangular bounds for triangle
                     int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
                     int maxX = (int) Math.min(img.getWidth() - 1,
@@ -101,7 +115,7 @@ public class DemoViewer {
                                 double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
                                 int zIndex = y * img.getWidth() + x;
                                 if (zBuffer[zIndex] < depth) {
-                                    img.setRGB(x, y, t.color.getRGB());
+                                    img.setRGB(x, y, getShade(t.color, angleCos).getRGB());
                                     zBuffer[zIndex] = depth;
                                 }
                             }
@@ -119,6 +133,20 @@ public class DemoViewer {
         headingSlider.addChangeListener(e -> renderPanel.repaint());
         pitchSlider.addChangeListener(e -> renderPanel.repaint());
     }
+
+    // Basic ass shading :)
+    public static Color getShade(Color color, double shade) {
+         double redLiner = Math.pow(color.getRed(), 2.4) * shade;
+         double greenLiner = Math.pow(color.getGreen(), 2.4) * shade;
+         double blueLiner = Math.pow(color.getBlue(), 2.4) * shade;
+
+
+         int red  = (int) Math.pow(redLiner, 1/2.4);
+         int green = (int) Math.pow(greenLiner, 1/2.4);
+         int blue  = (int) Math.pow(blueLiner, 1/2.4);
+         return new Color(red, green, blue);
+    }
+
 }
 
 // a structure to store three coordinates (x, y and z)
